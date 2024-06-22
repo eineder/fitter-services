@@ -17,3 +17,8 @@
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+*/**/node_modules/**/*
+.env
+is_swearword/is_swearword
+aws-file-to-dynamodb
