@@ -22,3 +22,4 @@ cdk.out
 .env
 is_swearword/is_swearword
 aws-file-to-dynamodb
+playground/playground.go

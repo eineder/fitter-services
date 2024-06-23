@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -28,13 +30,19 @@ func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*[]stri
 		return nil, fmt.Errorf("received empty text")
 	}
 
-	distinctWords := distinct(strings.Split(event.Text, " "))
-	statement := aws.String("SELECT * FROM swearwords WHERE word IN ?")
+	swearwordsTableName := os.Getenv("SWEARWORDS_TABLE_NAME")
+	if swearwordsTableName == "" {
+		msg := "missing SWEARWORDS_TABLE_NAME environment variable"
+		fmt.Println(msg)
+		return nil, fmt.Errorf(msg)
+	}
+
+	distinctWords := distinct(removePunctuations(strings.Split(event.Text, " ")))
 	parameters := getParameters(&distinctWords)
 	sess := session.Must(session.NewSession())
 	dynamoClient := dynamodb.New(sess)
 
-	swearwords, err := querySwearwords(parameters, dynamoClient, statement)
+	swearwords, err := querySwearwords(parameters, dynamoClient, swearwordsTableName)
 	if err != nil {
 		fmt.Println("Error querying swearwords ", err)
 		return nil, err
@@ -43,14 +51,20 @@ func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*[]stri
 	return &swearwords, nil
 }
 
-func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamodb.DynamoDB, statement *string) ([]string, error) {
+func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamodb.DynamoDB, tableName string) ([]string, error) {
 	const batchSize = 100
 	swearwords := []string{}
-	batchParameters := make([]*dynamodb.AttributeValue, batchSize)
+	batchParameters := []*dynamodb.AttributeValue{}
+	statement := fmt.Sprintf(`SELECT * FROM "%s" WHERE word IN (`, tableName)
+
 	for i, parameter := range parameters {
 		batchParameters = append(batchParameters, parameter)
-		if i%batchSize == 0 || i == len(parameters)-1 {
-			sw, err := queryBatchSwearwords(dynamoClient, statement, batchParameters, swearwords)
+		statement += "?, "
+		if len(parameters) == batchSize || i == len(parameters)-1 {
+			// remove the last comma and space
+			statement = statement[:len(statement)-2]
+			statement += ")"
+			sw, err := queryBatchSwearwords(dynamoClient, tableName, batchParameters, swearwords, statement)
 			if err != nil {
 				fmt.Println("Error querying swearwords ", err)
 				return nil, err
@@ -62,9 +76,10 @@ func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamo
 	return swearwords, nil
 }
 
-func queryBatchSwearwords(svc *dynamodb.DynamoDB, statement *string, batchParameters []*dynamodb.AttributeValue, swearwords []string) ([]string, error) {
+func queryBatchSwearwords(svc *dynamodb.DynamoDB, tableName string, batchParameters []*dynamodb.AttributeValue, swearwords []string, statement string) ([]string, error) {
+
 	out, err := svc.ExecuteStatement(&dynamodb.ExecuteStatementInput{
-		Statement:  statement,
+		Statement:  &statement,
 		Parameters: batchParameters,
 	})
 	if err != nil {
@@ -106,4 +121,18 @@ func distinct(words []string) []string {
 		a = append(a, word)
 	}
 	return a
+}
+
+func removePunctuations(words []string) []string {
+	for i, word := range words {
+		words[i] = removePunctuation(word)
+	}
+	return words
+}
+
+func removePunctuation(word string) string {
+	// Compile the regex
+	re := regexp.MustCompile(`^[^a-zA-Z]+|[^a-zA-Z]+$`)
+	// Replace non-letter characters at the start and end
+	return re.ReplaceAllString(word, "")
 }

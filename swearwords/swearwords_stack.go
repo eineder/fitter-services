@@ -47,8 +47,8 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 		BillingMode: awsdynamodb.BillingMode_PAY_PER_REQUEST,
 	})
 
-	fn := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("is-swearword-lambda"), &awscdklambdagoalpha.GoFunctionProps{
-		Entry:   jsii.String("swearwords/is_swearword/is_swearword.go"),
+	fn := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("contains-swearwords-lambda"), &awscdklambdagoalpha.GoFunctionProps{
+		Entry:   jsii.String("swearwords/contains_swearwords/contains_swearwords.go"),
 		Runtime: awslambda.Runtime_PROVIDED_AL2(),
 		Environment: &map[string]*string{
 			SWEARWORDS_TABLE_NAME: table.TableName()},
