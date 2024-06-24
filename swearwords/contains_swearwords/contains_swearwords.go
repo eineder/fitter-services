@@ -17,11 +17,15 @@ type ContainsSwearwordsEvent struct {
 	Text string `json:"text"`
 }
 
+type ContainsSwearwordsResponse struct {
+	Swearwords []string `json:"swearwords"`
+}
+
 func main() {
 	lambda.Start(HandleRequest)
 }
 
-func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*[]string, error) {
+func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*ContainsSwearwordsResponse, error) {
 	if event == nil {
 		return nil, fmt.Errorf("received nil event")
 	}
@@ -49,7 +53,9 @@ func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*[]stri
 		return nil, err
 	}
 
-	return &swearwords, nil
+	return &ContainsSwearwordsResponse{
+		Swearwords: swearwords,
+	}, nil
 }
 
 func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamodb.DynamoDB, tableName string) ([]string, error) {

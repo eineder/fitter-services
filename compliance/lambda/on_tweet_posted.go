@@ -24,7 +24,16 @@ type Tweet struct {
 	Text string `json:"text"`
 }
 
-func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPostedEvent, error) {
+type OnTweetPostedResponse struct {
+	Tweet               Tweet    `json:"tweet"`
+	ContainedSwearwords []string `json:"containedSwearwords"`
+}
+
+type ContainsSwearwordsResponse struct {
+	Swearwords []string `json:"swearwords"`
+}
+
+func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPostedResponse, error) {
 	if event == nil {
 		fmt.Println("Received nil event")
 		return nil, fmt.Errorf("received nil event")
@@ -65,24 +74,27 @@ func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPost
 	}
 
 	fmt.Printf("%+v\n", response)
-	var containsSwearwords bool
-	unmarErr := json.Unmarshal(response.Payload, &containsSwearwords)
+	var containsSwearwordsResponse ContainsSwearwordsResponse
+	unmarErr := json.Unmarshal(response.Payload, &containsSwearwordsResponse)
 	if unmarErr != nil {
 		fmt.Println("Error unmarshalling response ", unmarErr)
 		return nil, unmarErr
 	}
 
-	if containsSwearwords {
+	if containsSwearwordsResponse.Swearwords != nil && len(containsSwearwordsResponse.Swearwords) > 0 {
 		fmt.Println("Tweet contains swearwords", event.Tweet)
 		markErr := markTweetAsNonCompliant(event.Tweet.Id, event.TweetsTableName, sess)
 		if markErr != nil {
 			fmt.Println("Error marking tweet as non-compliant ", markErr)
 			return nil, markErr
 		}
-		fmt.Println("Marked tweet as non-compliant", event.Tweet)
+		fmt.Printf("Marked tweet as non-compliant. Text: '%s', Swearwords: '%+v'", event.Tweet, containsSwearwordsResponse.Swearwords)
 	}
 
-	return event, nil
+	return &OnTweetPostedResponse{
+		Tweet:               event.Tweet,
+		ContainedSwearwords: containsSwearwordsResponse.Swearwords,
+	}, nil
 }
 
 func markTweetAsNonCompliant(tweetId string, tableName string, sess *session.Session) error {
@@ -99,7 +111,8 @@ func markTweetAsNonCompliant(tweetId string, tableName string, sess *session.Ses
 				BOOL: aws.Bool(false),
 			},
 		},
-		UpdateExpression: aws.String("SET nonCompliant = :c"),
+		UpdateExpression:    aws.String("SET nonCompliant = :c"),
+		ConditionExpression: aws.String("attribute_exists(id)"),
 	})
 
 	if err != nil {
