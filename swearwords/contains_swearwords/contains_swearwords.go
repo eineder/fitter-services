@@ -38,7 +38,8 @@ func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*[]stri
 	}
 
 	distinctWords := distinct(removePunctuations(strings.Split(event.Text, " ")))
-	parameters := getParameters(&distinctWords)
+	words := remove(&distinctWords, "")
+	parameters := getParameters(words)
 	sess := session.Must(session.NewSession())
 	dynamoClient := dynamodb.New(sess)
 
@@ -135,4 +136,15 @@ func removePunctuation(word string) string {
 	re := regexp.MustCompile(`^[^a-zA-Z]+|[^a-zA-Z]+$`)
 	// Replace non-letter characters at the start and end
 	return re.ReplaceAllString(word, "")
+}
+
+func remove(arr *[]string, word string) *[]string {
+	newArr := []string{}
+	for _, w := range *arr {
+		if w != word {
+			newArr = append(newArr, w)
+			break
+		}
+	}
+	return &newArr
 }
