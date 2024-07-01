@@ -1,10 +1,7 @@
 package pipeline
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
-	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	codebuild "github.com/aws/aws-cdk-go/awscdk/v2/awscodebuild"
@@ -17,6 +14,7 @@ import (
 type PipelineStackProps struct {
 	awscdk.StackProps
 	SwearwordsLambdaName string
+	BranchName           string
 }
 
 func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStackProps) awscdk.Stack {
@@ -26,14 +24,8 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 	}
 	stack := awscdk.NewStack(scope, jsii.String(id), &sprops)
 
-	branchName, err := getCurrentGitBranch()
-	if err != nil {
-		panic(err) // Or handle the error as appropriate
-	}
-
-	pipelineName := fmt.Sprintf("appsyncmasterclass_%s_pipeline", branchName)
-	// GitHub repo with owner and repository name
-	githubRepo := pipeline.CodePipelineSource_GitHub(jsii.String("eineder/appsyncmasterclass-services"), &branchName, &pipeline.GitHubSourceOptions{
+	pipelineName := fmt.Sprintf("appsyncmasterclass_%s_pipeline", props.BranchName)
+	githubRepo := pipeline.CodePipelineSource_GitHub(jsii.String("eineder/appsyncmasterclass-services"), &props.BranchName, &pipeline.GitHubSourceOptions{
 		Authentication: awscdk.SecretValue_SecretsManager(jsii.String("github-token"), nil),
 	})
 
@@ -57,21 +49,15 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		}),
 	})
 
-	myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{}), &pipeline.AddStageOpts{})
-	if branchName == "main" {
-		myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{}), &pipeline.AddStageOpts{})
+	myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{
+		BranchName: props.BranchName,
+	}), &pipeline.AddStageOpts{})
+
+	if props.BranchName == "main" {
+		myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{
+			BranchName: props.BranchName,
+		}), &pipeline.AddStageOpts{})
 	}
 
 	return stack
-}
-
-func getCurrentGitBranch() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref HEAD")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(out.String()), nil
 }
