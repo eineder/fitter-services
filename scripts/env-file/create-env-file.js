@@ -11,6 +11,19 @@ async function execute() {
   const pipelineName = `appsyncmasterclass_${getBranchName()}_pipeline`;
   const stages = await getPipelineStages(pipelineName);
   const testStage = stages.find((stage) => stage.name === "TEST");
+  const testStageStackNames = new Set(
+    testStage.actions.map((ts) => ts.configuration.StackName)
+  );
+
+  const cfClient = new cf.CloudFormationClient();
+  for (const stackName of testStageStackNames) {
+    const cmd = new cf.DescribeStacksCommand({
+      StackName: stackName,
+    });
+    const response = await cfClient.send(cmd);
+    return response.Stacks[0];
+  }
+
   console.log("Test stage:", testStage);
   // for (const action of testStage.actions) {
   //   // Assuming action configuration contains the stack name
