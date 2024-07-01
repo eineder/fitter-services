@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -30,14 +31,15 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		panic(err) // Or handle the error as appropriate
 	}
 
+	pipelineName := fmt.Sprintf("appsyncmasterclass_%s_pipeline", branchName)
 	// GitHub repo with owner and repository name
 	githubRepo := pipeline.CodePipelineSource_GitHub(jsii.String("eineder/appsyncmasterclass-services"), &branchName, &pipeline.GitHubSourceOptions{
 		Authentication: awscdk.SecretValue_SecretsManager(jsii.String("github-token"), nil),
 	})
 
 	// self mutating pipeline
-	myPipeline := pipeline.NewCodePipeline(stack, jsii.String("cdkPipeline"), &pipeline.CodePipelineProps{
-		PipelineName: jsii.String("CdkPipeline"),
+	myPipeline := pipeline.NewCodePipeline(stack, &pipelineName, &pipeline.CodePipelineProps{
+		PipelineName: &pipelineName,
 		// self mutation true - pipeline changes itself before application deployment
 		SelfMutation: jsii.Bool(true),
 		CodeBuildDefaults: &pipeline.CodeBuildOptions{
@@ -64,7 +66,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 }
 
 func getCurrentGitBranch() (string, error) {
-	cmd := exec.Command("git", "branch", "--show-current")
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref HEAD")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
