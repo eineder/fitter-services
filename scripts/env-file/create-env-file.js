@@ -6,11 +6,15 @@ const { execSync } = require("child_process");
 execute();
 
 async function execute() {
-  console.log("Creating .env file...");
+  const fileName = ".env";
+  console.log(`Creating ${fileName} file...`);
 
   const pipelineName = `appsyncmasterclass_${getBranchName()}_pipeline`;
   const stages = await getPipelineStages(pipelineName);
   const testStage = stages.find((stage) => stage.name === "TEST");
+  if (!testStage) {
+    throw new Error("TEST stage not found in the pipeline.");
+  }
   // Get unique stack names of the test stage
   const testStageStackNames = new Set(
     testStage.actions.map((ts) => ts.configuration.StackName)
@@ -18,13 +22,20 @@ async function execute() {
 
   const outputs = await getOutputs(testStageStackNames);
 
-  let envContent = "";
-  outputs.forEach((output) => {
+  const envs = outputs.map((output) => {
     const key = camelToSnakeCase(output.OutputKey);
     const value = output.OutputValue;
-    envContent += `${key}=${value}\n`;
+    return { key, value };
   });
-  fs.writeFileSync(".env", envContent);
+  envs.push({ key: "AWS_SDK_LOAD_CONFIG", value: "1" });
+  const envContent = envs
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .reduce((acc, env) => {
+      return `${acc}${env.key}=${env.value}\n`;
+    }, "");
+
+  fs.writeFileSync(fileName, envContent);
+  console.log(`${fileName} file created.`);
 }
 async function getOutputs(testStageStackNames) {
   const client = new cf.CloudFormationClient();

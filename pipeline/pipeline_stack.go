@@ -49,13 +49,20 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		}),
 	})
 
-	myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{
-		BranchName: props.BranchName,
+	testStage := myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{
+		BranchName:         props.BranchName,
+		SwearwordsFileName: "swearwords_test.txt",
 	}), &pipeline.AddStageOpts{})
+	testStage.AddPost(pipeline.NewCodeBuildStep(jsii.String("Test"), &pipeline.CodeBuildStepProps{
+		Commands: &[]*string{
+			jsii.String("go test ./..."),
+		},
+	}))
 
 	if props.BranchName == "main" {
 		myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{
-			BranchName: props.BranchName,
+			BranchName:         props.BranchName,
+			SwearwordsFileName: "swearwords_prod.txt",
 		}), &pipeline.AddStageOpts{})
 	}
 
