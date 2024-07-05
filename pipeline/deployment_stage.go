@@ -11,7 +11,8 @@ import (
 
 type MyStageProps struct {
 	awscdk.StageProps
-	BranchName string
+	BranchName         string
+	SwearwordsFileName string
 }
 
 func NewDeploymentStage(scope constructs.Construct, id string, props *MyStageProps) awscdk.Stage {
@@ -22,7 +23,9 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *MyStagePro
 	stage := awscdk.NewStage(scope, &id, &awscdk.StageProps{})
 
 	swearwordsStackName := getStackName(props.BranchName, id, "swearwordsservice")
-	_, swLambdaName := swearwords.NewSwearwordsServiceStack(stage, swearwordsStackName, &swearwords.SwearwordsServiceStackProps{})
+	_, swLambdaName := swearwords.NewSwearwordsServiceStack(stage, swearwordsStackName, &swearwords.SwearwordsServiceStackProps{
+		SwearwordsFileName: props.SwearwordsFileName,
+	})
 
 	complianceStackName := getStackName(props.BranchName, id, "complianceservice")
 	compliance.NewComplianceServiceStack(stage, complianceStackName, &compliance.ComplianceServiceStackProps{

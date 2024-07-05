@@ -59,7 +59,7 @@ func HandleRequest(ctx context.Context, event *ContainsSwearwordsEvent) (*Contai
 }
 
 func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamodb.DynamoDB, tableName string) ([]string, error) {
-	const batchSize = 100
+	const batchSize = 50
 	swearwords := []string{}
 	batchParameters := []*dynamodb.AttributeValue{}
 	statement := fmt.Sprintf(`SELECT * FROM "%s" WHERE word IN (`, tableName)
@@ -67,7 +67,7 @@ func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamo
 	for i, parameter := range parameters {
 		batchParameters = append(batchParameters, parameter)
 		statement += "?, "
-		if len(parameters) == batchSize || i == len(parameters)-1 {
+		if len(batchParameters) == batchSize || i == len(parameters)-1 {
 			// remove the last comma and space
 			statement = statement[:len(statement)-2]
 			statement += ")"
@@ -77,7 +77,8 @@ func querySwearwords(parameters []*dynamodb.AttributeValue, dynamoClient *dynamo
 				return nil, err
 			}
 			swearwords = append(swearwords, sw...)
-			batchParameters = make([]*dynamodb.AttributeValue, batchSize)
+			batchParameters = batchParameters[:0]
+			statement = fmt.Sprintf(`SELECT * FROM "%s" WHERE word IN (`, tableName)
 		}
 	}
 	return swearwords, nil
@@ -149,7 +150,6 @@ func remove(arr *[]string, word string) *[]string {
 	for _, w := range *arr {
 		if w != word {
 			newArr = append(newArr, w)
-			break
 		}
 	}
 	return &newArr

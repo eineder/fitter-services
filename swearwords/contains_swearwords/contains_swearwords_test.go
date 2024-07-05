@@ -19,7 +19,7 @@ func TestHandleRequest(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *[]string
+		want    []string
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -31,7 +31,7 @@ func TestHandleRequest(t *testing.T) {
 					Text: "This is a test without swearwords",
 				},
 			},
-			want:    &[]string{},
+			want:    []string{},
 			wantErr: false,
 		},
 		{
@@ -42,7 +42,7 @@ func TestHandleRequest(t *testing.T) {
 					Text: "This is a test with a swearword: Depp",
 				},
 			},
-			want:    &[]string{"Depp"},
+			want:    []string{"Depp"},
 			wantErr: false,
 		},
 		{
@@ -53,7 +53,7 @@ func TestHandleRequest(t *testing.T) {
 					Text: "This is a test with a swearword: Depp!",
 				},
 			},
-			want:    &[]string{"Depp"},
+			want:    []string{"Depp"},
 			wantErr: false,
 		},
 		{
@@ -64,7 +64,7 @@ func TestHandleRequest(t *testing.T) {
 					Text: getSeveralHundredWords(),
 				},
 			},
-			want:    &[]string{},
+			want:    []string{},
 			wantErr: false,
 		},
 	}
@@ -75,8 +75,8 @@ func TestHandleRequest(t *testing.T) {
 				t.Errorf("HandleRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("HandleRequest() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got.Swearwords, tt.want) {
+				t.Errorf("HandleRequest() = %v, want %v", got.Swearwords, tt.want)
 			}
 		})
 	}

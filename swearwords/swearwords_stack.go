@@ -20,6 +20,7 @@ const BUCKET_KEY string = "BUCKET_KEY"
 
 type SwearwordsServiceStackProps struct {
 	awscdk.StackProps
+	SwearwordsFileName string
 }
 
 func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *SwearwordsServiceStackProps) (stack awscdk.Stack, lambdaName string) {
@@ -66,7 +67,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 		Environment: &map[string]*string{
 			SWEARWORDS_TABLE_NAME: table.TableName(),
 			BUCKET_NAME:           bucket.BucketName(),
-			BUCKET_KEY:            jsii.String("swearwords.txt")},
+			BUCKET_KEY:            &props.SwearwordsFileName},
 	})
 	triggerFunc.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
@@ -104,7 +105,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 	})
 	awscdk.NewCfnOutput(stack, jsii.String("BucketKeyOutput"), &awscdk.CfnOutputProps{
 		Key:   jsii.String("BucketKey"),
-		Value: jsii.String("swearwords.txt"),
+		Value: &props.SwearwordsFileName,
 	})
 	awscdk.NewCfnOutput(stack, jsii.String("SwearwordsTableNameOutput"), &awscdk.CfnOutputProps{
 		Key:   jsii.String("SwearwordsTableName"),
