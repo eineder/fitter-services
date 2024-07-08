@@ -11,23 +11,19 @@ import (
 
 type MyStageProps struct {
 	awscdk.StageProps
-	BranchName         string
 	SwearwordsFileName string
 }
 
 func NewDeploymentStage(scope constructs.Construct, id string, props *MyStageProps) awscdk.Stage {
-	if props.BranchName == "" {
-		panic("BranchName is required")
-	}
 
 	stage := awscdk.NewStage(scope, &id, &awscdk.StageProps{})
 
-	swearwordsStackName := getStackName(props.BranchName, id, "swearwordsservice")
+	swearwordsStackName := getStackName(id, "swearwordsservice")
 	_, swLambdaName := swearwords.NewSwearwordsServiceStack(stage, swearwordsStackName, &swearwords.SwearwordsServiceStackProps{
 		SwearwordsFileName: props.SwearwordsFileName,
 	})
 
-	complianceStackName := getStackName(props.BranchName, id, "complianceservice")
+	complianceStackName := getStackName(id, "complianceservice")
 	compliance.NewComplianceServiceStack(stage, complianceStackName, &compliance.ComplianceServiceStackProps{
 		SwearwordsLambdaName: swLambdaName,
 	})
@@ -35,7 +31,7 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *MyStagePro
 	return stage
 }
 
-func getStackName(branchName string, stageId string, serviceName string) string {
-	stackName := fmt.Sprintf("appsycmasterclass-%s-%s-%s", branchName, stageId, serviceName)
+func getStackName(stageId string, serviceName string) string {
+	stackName := fmt.Sprintf("appsycmasterclass-%s-%s", stageId, serviceName)
 	return stackName
 }

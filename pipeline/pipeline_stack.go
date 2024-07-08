@@ -1,11 +1,6 @@
 package pipeline
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"strings"
-
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	codebuild "github.com/aws/aws-cdk-go/awscdk/v2/awscodebuild"
 	pipeline "github.com/aws/aws-cdk-go/awscdk/v2/pipelines"
@@ -26,13 +21,8 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 	}
 	stack := awscdk.NewStack(scope, jsii.String(id), &sprops)
 
-	branchName, err := getBranchName()
-	if err != nil {
-		panic(err)
-	}
-
-	pipelineName := fmt.Sprintf("appsyncmasterclass_%s_pipeline", branchName)
-	githubRepo := pipeline.CodePipelineSource_GitHub(jsii.String("eineder/appsyncmasterclass-services"), &branchName, &pipeline.GitHubSourceOptions{
+	pipelineName := "appsyncmasterclass_pipeline"
+	githubRepo := pipeline.CodePipelineSource_GitHub(jsii.String("eineder/appsyncmasterclass-services"), jsii.String("pipelines"), &pipeline.GitHubSourceOptions{
 		Authentication: awscdk.SecretValue_SecretsManager(jsii.String("github-token"), nil),
 	})
 
@@ -57,7 +47,6 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 	})
 
 	testStage := myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{
-		BranchName:         branchName,
 		SwearwordsFileName: "swearwords_test.txt",
 	}), &pipeline.AddStageOpts{})
 	testStage.AddPost(pipeline.NewCodeBuildStep(jsii.String("Test"), &pipeline.CodeBuildStepProps{
@@ -66,27 +55,9 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		},
 	}))
 
-	if branchName == "main" {
-		myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{
-			BranchName:         branchName,
-			SwearwordsFileName: "swearwords_prod.txt",
-		}), &pipeline.AddStageOpts{})
-	}
+	myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{
+		SwearwordsFileName: "swearwords_prod.txt",
+	}), &pipeline.AddStageOpts{})
 
 	return stack
-}
-
-func getBranchName() (string, error) {
-
-	codeBuildVersion := os.Getenv("CODEBUILD_SOURCE_VERSION")
-	fmt.Printf("CODEBUILD_SOURCE_VERSION: %s\n", codeBuildVersion)
-	if codeBuildVersion != "" {
-		return codeBuildVersion, nil
-	}
-
-	out, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(out)), nil
 }
