@@ -37,7 +37,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		CodeBuildDefaults: &pipeline.CodeBuildOptions{
 			BuildEnvironment: &codebuild.BuildEnvironment{
 				// image version 6.0 recommended for newer go version
-				BuildImage: codebuild.LinuxBuildImage_FromCodeBuildImageId(jsii.String("aws/codebuild/standard:6.0")),
+				BuildImage: codebuild.LinuxBuildImage_FromCodeBuildImageId(jsii.String("aws/codebuild/standard:7.0")),
 			},
 		},
 		Synth: pipeline.NewCodeBuildStep(jsii.String("Synth"), &pipeline.CodeBuildStepProps{
