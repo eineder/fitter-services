@@ -1,0 +1,1 @@
+cdk deploy --require-approval never && node ./scripts/env-file/create-env-file.js

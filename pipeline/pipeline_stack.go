@@ -43,6 +43,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		Synth: pipeline.NewCodeBuildStep(jsii.String("Synth"), &pipeline.CodeBuildStepProps{
 			Input: githubRepo,
 			Commands: &[]*string{
+				jsii.String("sudo apt install git-all"),
 				jsii.String("npm install -g aws-cdk"),
 				jsii.String("cdk synth"),
 			},
