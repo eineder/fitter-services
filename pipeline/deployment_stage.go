@@ -18,12 +18,12 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *MyStagePro
 
 	stage := awscdk.NewStage(scope, &id, &awscdk.StageProps{})
 
-	swearwordsStackName := getStackName(id, "swearwordsservice")
+	swearwordsStackName := getStackName("swearwordsservice")
 	_, swLambdaName := swearwords.NewSwearwordsServiceStack(stage, swearwordsStackName, &swearwords.SwearwordsServiceStackProps{
 		SwearwordsFileName: props.SwearwordsFileName,
 	})
 
-	complianceStackName := getStackName(id, "complianceservice")
+	complianceStackName := getStackName("complianceservice")
 	compliance.NewComplianceServiceStack(stage, complianceStackName, &compliance.ComplianceServiceStackProps{
 		SwearwordsLambdaName: swLambdaName,
 	})
@@ -31,7 +31,7 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *MyStagePro
 	return stage
 }
 
-func getStackName(stageId string, serviceName string) string {
-	stackName := fmt.Sprintf("appsycmasterclass-%s-%s", stageId, serviceName)
+func getStackName(serviceName string) string {
+	stackName := fmt.Sprintf("appsycmasterclass-%s-", serviceName)
 	return stackName
 }
