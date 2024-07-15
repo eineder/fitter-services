@@ -3,7 +3,9 @@ set -e
 
 export AWS_PAGER=""
 
-npm install scripts/env-file
+cd scripts/env-file
+npm ci
+cd ../..
 node ./scripts/env-file/create-env-file.js
 echo "Created .env file"
 
