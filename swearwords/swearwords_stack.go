@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3deployment"
-	"github.com/aws/aws-cdk-go/awscdk/v2/triggers"
 	"github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -61,7 +60,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 		Resources: &[]*string{table.TableArn()},
 	}))
 
-	triggerFunc := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("prime-swearwords-lambda"), &awscdklambdagoalpha.GoFunctionProps{
+	primeFn := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("prime-swearwords-lambda"), &awscdklambdagoalpha.GoFunctionProps{
 		Entry:   jsii.String("swearwords/prime_swearwords/prime_swearwords.go"),
 		Runtime: awslambda.Runtime_PROVIDED_AL2(),
 		Environment: &map[string]*string{
@@ -69,7 +68,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 			BUCKET_NAME:           bucket.BucketName(),
 			BUCKET_KEY:            &props.SwearwordsFileName},
 	})
-	triggerFunc.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+	primeFn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings(
 			"dynamodb:GetItem",
@@ -78,13 +77,13 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 			"dynamodb:ListImports"),
 		Resources: &[]*string{table.TableArn()},
 	}))
-	triggerFunc.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+	primeFn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings("s3:GetObject",
 			"s3:ListBucket"),
 		Resources: jsii.Strings(*bucket.BucketArn(), *bucket.BucketArn()+"/*"),
 	}))
-	triggerFunc.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+	primeFn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings("logs:CreateLogGroup",
 			"logs:CreateLogStream",
@@ -94,10 +93,6 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 			"logs:PutRetentionPolicy"),
 		Resources: jsii.Strings("*"),
 	}))
-	triggers.NewTrigger(stack, jsii.String("prime-swearwords-trigger"), &triggers.TriggerProps{
-		Handler:        triggerFunc,
-		InvocationType: triggers.InvocationType_EVENT,
-	})
 
 	awscdk.NewCfnOutput(stack, jsii.String("BucketNameOutput"), &awscdk.CfnOutputProps{
 		Key:   jsii.String("BucketName"),
@@ -110,6 +105,10 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 	awscdk.NewCfnOutput(stack, jsii.String("SwearwordsTableNameOutput"), &awscdk.CfnOutputProps{
 		Key:   jsii.String("SwearwordsTableName"),
 		Value: table.TableName(),
+	})
+	awscdk.NewCfnOutput(stack, jsii.String("PrimeSwearwordsFunctionNameOutput"), &awscdk.CfnOutputProps{
+		Key:   jsii.String("PrimeSwearwordsFunctionName"),
+		Value: primeFn.FunctionName(),
 	})
 
 	return stack, *fn.FunctionName()

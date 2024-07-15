@@ -9,12 +9,12 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 )
 
-type MyStageProps struct {
+type DeploymentStageProps struct {
 	awscdk.StageProps
 	SwearwordsFileName string
 }
 
-func NewDeploymentStage(scope constructs.Construct, id string, props *MyStageProps) awscdk.Stage {
+func NewDeploymentStage(scope constructs.Construct, id string, props *DeploymentStageProps) awscdk.Stage {
 
 	stage := awscdk.NewStage(scope, &id, &awscdk.StageProps{})
 

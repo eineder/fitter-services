@@ -46,16 +46,17 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 		}),
 	})
 
-	testStage := myPipeline.AddStage(NewDeploymentStage(stack, "TEST", &MyStageProps{
+	stageProps := &DeploymentStageProps{
 		SwearwordsFileName: "swearwords_test.txt",
-	}), &pipeline.AddStageOpts{})
-	testStage.AddPost(pipeline.NewCodeBuildStep(jsii.String("run-intgration-tests"), &pipeline.CodeBuildStepProps{
+	}
+	testStage := myPipeline.AddStage(NewDeploymentStage(stack, "TEST", stageProps), &pipeline.AddStageOpts{})
+	testStage.AddPost(pipeline.NewCodeBuildStep(jsii.String("run-tests"), &pipeline.CodeBuildStepProps{
 		Commands: &[]*string{
-			jsii.String("go test ./..."),
+			jsii.String("./test.sh"),
 		},
 	}))
 
-	myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &MyStageProps{
+	myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &DeploymentStageProps{
 		SwearwordsFileName: "swearwords_prod.txt",
 	}), &pipeline.AddStageOpts{})
 

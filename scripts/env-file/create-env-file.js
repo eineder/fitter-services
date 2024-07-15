@@ -9,7 +9,7 @@ async function execute() {
   const fileName = ".env";
   console.log(`Creating ${fileName} file...`);
 
-  const pipelineName = `appsyncmasterclass_${getBranchName()}_pipeline`;
+  const pipelineName = `appsyncmasterclass_pipeline`;
   const stages = await getPipelineStages(pipelineName);
   const testStage = stages.find((stage) => stage.name === "TEST");
   if (!testStage) {
@@ -52,17 +52,6 @@ async function getOutputs(testStageStackNames) {
   return outputs.filter((output) => output !== undefined);
 }
 
-function getBranchName() {
-  try {
-    const branch = execSync("git rev-parse --abbrev-ref HEAD")
-      .toString()
-      .trim();
-    return branch;
-  } catch (error) {
-    console.error("Error getting git branch:", error);
-    throw error;
-  }
-}
 async function getPipelineStages(pipelineName) {
   const codePipelineClient = new cp.CodePipelineClient();
   const command = new cp.GetPipelineCommand({ name: pipelineName });
