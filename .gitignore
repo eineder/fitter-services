@@ -18,6 +18,7 @@
 .cdk.staging
 cdk.out
 
+node_modules
 */**/node_modules/**/*
 .env
 is_swearword/is_swearword
