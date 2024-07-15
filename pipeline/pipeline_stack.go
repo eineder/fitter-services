@@ -3,6 +3,7 @@ package pipeline
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	codebuild "github.com/aws/aws-cdk-go/awscdk/v2/awscodebuild"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	pipeline "github.com/aws/aws-cdk-go/awscdk/v2/pipelines"
 	"github.com/aws/jsii-runtime-go"
 
@@ -59,6 +60,16 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 	myPipeline.AddStage(NewDeploymentStage(stack, "PROD", &DeploymentStageProps{
 		SwearwordsFileName: "swearwords_prod.txt",
 	}), &pipeline.AddStageOpts{})
+
+	myPipeline.BuildPipeline()
+	myPipeline.Pipeline().AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+		Actions: &[]*string{
+			jsii.String("codepipeline:GetPipeline"),
+		},
+		Resources: &[]*string{
+			myPipeline.Pipeline().PipelineArn(),
+		},
+	}))
 
 	return stack
 }
