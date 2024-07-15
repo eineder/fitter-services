@@ -1,7 +1,6 @@
 const fs = require("fs");
 const cf = require("@aws-sdk/client-cloudformation");
 const cp = require("@aws-sdk/client-codepipeline");
-const { execSync } = require("child_process");
 
 execute();
 

@@ -1,3 +1,6 @@
+# Abort as soon as a command fails
+set -e
+
 export AWS_PAGER=""
 
 npm install scripts/env-file
