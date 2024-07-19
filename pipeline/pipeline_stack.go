@@ -43,6 +43,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineStac
 				jsii.String("npm install -g aws-cdk"),
 				jsii.String("cdk synth"),
 			},
+			PrimaryOutputDirectory: jsii.String("cdk.out"),
 		}),
 	})
 
