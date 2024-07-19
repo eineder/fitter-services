@@ -24,4 +24,4 @@ jobs:
         run: cdk synth --output=./cdk.out
 
       - name: CDK Deploy
-        run: cdk deploy --all
+        run: cdk deploy --all --verbose
