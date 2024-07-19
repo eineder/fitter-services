@@ -23,9 +23,5 @@ jobs:
       - name: CDK Synthesis
         run: cdk synth --output=./cdk.out
 
-  deploy:
-    needs: synth
-    runs-on: ubuntu-latest
-    steps:
       - name: CDK Deploy
         run: cdk deploy --all
