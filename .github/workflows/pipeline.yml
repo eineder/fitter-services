@@ -30,3 +30,6 @@ jobs:
 
       - name: CDK Deploy
         run: cdk deploy --all --verbose
+
+      - name: Test
+        run: ./test.sh
