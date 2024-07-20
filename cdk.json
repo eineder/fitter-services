@@ -1,5 +1,5 @@
 {
-  "app": "go mod download && go run appsyncmasterclass_services.go",
+  "app": "go mod download && go run .",
   "watch": {
     "include": ["**"],
     "exclude": ["README.md", "cdk*.json", "go.mod", "go.sum", "**/*test.go"]

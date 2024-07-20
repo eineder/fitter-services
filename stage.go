@@ -1,4 +1,4 @@
-package pipeline
+package main
 
 import (
 	"appsyncmasterclass-services/compliance"

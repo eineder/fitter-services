@@ -25,7 +25,7 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
-	github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2 v2.146.0-alpha.0 // indirect
+	github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2 v2.146.0-alpha.0
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go v1.54.6
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.14.5
