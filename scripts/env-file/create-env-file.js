@@ -1,56 +1,26 @@
 const fs = require("fs");
-const path = require("path");
+const cf = require("@aws-sdk/client-cloudformation");
+const cp = require("@aws-sdk/client-codepipeline");
 
-function getStackOutputs(templateFile) {
-  const template = JSON.parse(fs.readFileSync(templateFile, "utf-8"));
-  const outputs = template.Outputs || null;
-  return outputs;
-}
+execute();
 
-function traverseDirectory(dir, fileCallback) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    if (fs.lstatSync(filePath).isDirectory()) {
-      traverseDirectory(filePath, fileCallback);
-    } else if (path.extname(file) === ".json") {
-      fileCallback(filePath);
-    }
+async function execute() {
+  const fileName = ".env";
+  console.log(`Creating ${fileName} file...`);
+
+  const pipelineName = `appsyncmasterclass_pipeline`;
+  const stages = await getPipelineStages(pipelineName);
+  const testStage = stages.find((stage) => stage.name === "TEST");
+  if (!testStage) {
+    throw new Error("TEST stage not found in the pipeline.");
   }
-}
+  // Get unique stack names of the test stage
+  const testStageStackNames = new Set(
+    testStage.actions.map((ts) => ts.configuration.StackName)
+  );
 
-function camelToSnakeCase(str) {
-  return str
-    .replace(/[A-Z]/g, (letter, index) => `${index > 0 ? "_" : ""}${letter}`)
-    .toUpperCase();
-}
+  const outputs = await getOutputs(testStageStackNames);
 
-function main() {
-  const envFileName = ".env";
-  console.log(`Creating ${envFileName} file...`);
-
-  const cdkOutDir = "./cdk.out"; // Directory where CDK synthesized templates are stored
-  const allOutputs = {};
-
-  traverseDirectory(cdkOutDir, (filePath) => {
-    if (!filePath.includes("TEST")) return;
-    const stackName = path.relative(cdkOutDir, filePath).replace(".json", "");
-    const stackOutputs = getStackOutputs(filePath);
-    if (stackOutputs) allOutputs[stackName] = stackOutputs;
-  });
-
-  const outputs = [];
-  for (let stackName in allOutputs) {
-    const stackOutputs = allOutputs[stackName];
-    for (let outputName in stackOutputs) {
-      const output = stackOutputs[outputName].Value;
-      const outputValue = typeof output === "string" ? output : output.Ref;
-      outputs.push({
-        OutputKey: outputName,
-        OutputValue: outputValue,
-      });
-    }
-  }
   const envs = outputs.map((output) => {
     const key = camelToSnakeCase(output.OutputKey);
     const value = output.OutputValue;
@@ -63,8 +33,33 @@ function main() {
       return `${acc}${env.key}=${env.value}\n`;
     }, "");
 
-  fs.writeFileSync(envFileName, envContent);
-  console.log(`${envFileName} file created.`);
+  fs.writeFileSync(fileName, envContent);
+  console.log(`${fileName} file created.`);
+}
+async function getOutputs(testStageStackNames) {
+  const client = new cf.CloudFormationClient();
+  const promises = [];
+  for (const stackName of testStageStackNames) {
+    const cmd = new cf.DescribeStacksCommand({
+      StackName: stackName,
+    });
+    const promise = client.send(cmd);
+    promises.push(promise);
+  }
+  const responses = await Promise.all(promises);
+  const outputs = responses.flatMap((response) => response.Stacks[0].Outputs);
+  return outputs.filter((output) => output !== undefined);
 }
 
-main();
+async function getPipelineStages(pipelineName) {
+  const codePipelineClient = new cp.CodePipelineClient();
+  const command = new cp.GetPipelineCommand({ name: pipelineName });
+  const response = await codePipelineClient.send(command);
+  return response.pipeline.stages;
+}
+
+function camelToSnakeCase(str) {
+  return str
+    .replace(/[A-Z]/g, (letter, index) => `${index > 0 ? "_" : ""}${letter}`)
+    .toUpperCase();
+}
