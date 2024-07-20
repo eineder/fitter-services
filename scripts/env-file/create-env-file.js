@@ -53,9 +53,7 @@ async function getOutputs(testStageStackNames) {
 }
 
 async function getPipelineStages(pipelineName) {
-  const codePipelineClient = new cp.CodePipelineClient({
-    region: process.env.AWS_DEFAULT_REGION,
-  });
+  const codePipelineClient = new cp.CodePipelineClient();
   const command = new cp.GetPipelineCommand({ name: pipelineName });
   const response = await codePipelineClient.send(command);
   return response.pipeline.stages;
