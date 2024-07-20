@@ -1,4 +1,5 @@
 const fs = require("fs");
+const process = require("process");
 const cf = require("@aws-sdk/client-cloudformation");
 const cp = require("@aws-sdk/client-codepipeline");
 
@@ -52,7 +53,9 @@ async function getOutputs(testStageStackNames) {
 }
 
 async function getPipelineStages(pipelineName) {
-  const codePipelineClient = new cp.CodePipelineClient();
+  const codePipelineClient = new cp.CodePipelineClient({
+    region: process.env.AWS_DEFAULT_REGION,
+  });
   const command = new cp.GetPipelineCommand({ name: pipelineName });
   const response = await codePipelineClient.send(command);
   return response.pipeline.stages;
