@@ -26,3 +26,4 @@ aws-file-to-dynamodb
 playground/playground.go
 pipeline/pipeline
 appsyncmasterclass-services
+lambda-out.json

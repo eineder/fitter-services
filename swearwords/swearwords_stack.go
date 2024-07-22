@@ -72,6 +72,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings(
 			"dynamodb:GetItem",
+			"dynamodb:PutItem",
 			"dynamodb:ImportTable",
 			"dynamodb:DescribeImport",
 			"dynamodb:ListImports"),

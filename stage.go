@@ -32,6 +32,6 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *Deployment
 }
 
 func getStackName(serviceName string) string {
-	stackName := fmt.Sprintf("appsycmasterclass-%s", serviceName)
+	stackName := fmt.Sprintf("appsyncmasterclass-services-%s", serviceName)
 	return stackName
 }

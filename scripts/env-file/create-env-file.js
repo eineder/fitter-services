@@ -1,7 +1,5 @@
 const fs = require("fs");
-const process = require("process");
 const cf = require("@aws-sdk/client-cloudformation");
-const cp = require("@aws-sdk/client-codepipeline");
 
 execute();
 
@@ -9,18 +7,13 @@ async function execute() {
   const fileName = ".env";
   console.log(`Creating ${fileName} file...`);
 
-  const pipelineName = `appsyncmasterclass_pipeline`;
-  const stages = await getPipelineStages(pipelineName);
-  const testStage = stages.find((stage) => stage.name === "TEST");
-  if (!testStage) {
-    throw new Error("TEST stage not found in the pipeline.");
-  }
-  // Get unique stack names of the test stage
-  const testStageStackNames = new Set(
-    testStage.actions.map((ts) => ts.configuration.StackName)
-  );
-
-  const outputs = await getOutputs(testStageStackNames);
+  const client = new cf.CloudFormationClient();
+  const lsc = new cf.ListStacksCommand();
+  const response = await client.send(lsc);
+  stackNames = response.StackSummaries.filter((stack) =>
+    stack.StackName.startsWith("TEST-appsyncmasterclass-services")
+  ).map((stack) => stack.StackName);
+  const outputs = await getOutputs(stackNames);
 
   const envs = outputs.map((output) => {
     const key = camelToSnakeCase(output.OutputKey);
@@ -50,13 +43,6 @@ async function getOutputs(testStageStackNames) {
   const responses = await Promise.all(promises);
   const outputs = responses.flatMap((response) => response.Stacks[0].Outputs);
   return outputs.filter((output) => output !== undefined);
-}
-
-async function getPipelineStages(pipelineName) {
-  const codePipelineClient = new cp.CodePipelineClient();
-  const command = new cp.GetPipelineCommand({ name: pipelineName });
-  const response = await codePipelineClient.send(command);
-  return response.pipeline.stages;
 }
 
 function camelToSnakeCase(str) {
