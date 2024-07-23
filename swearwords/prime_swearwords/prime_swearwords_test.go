@@ -33,12 +33,17 @@ func TestExampleTestSuite(t *testing.T) {
 
 func (ts *PrimeSwearwordsTestSuite) TestEnsureTablePrimed() {
 
-	session, sessionErr := session.NewSession()
-	if sessionErr != nil {
-		ts.Fail("Got error creating session.", sessionErr)
+	session, err := session.NewSession()
+	if err != nil {
+		ts.Fail("Got error creating session.", err)
 	}
 	db := dynamodb.New(session)
-	godotenv.Load("../../.TEST.env")
+
+	err = godotenv.Load("../../.TEST.env")
+	if err != nil {
+		ts.Error(err)
+		return
+	}
 	tableName := os.Getenv("SWEARWORDS_TABLE_NAME")
 
 	emptyErr := Given_AnEmptySwearwordsTable(ts, tableName, db)

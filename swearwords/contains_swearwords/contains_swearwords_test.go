@@ -10,7 +10,11 @@ import (
 
 func TestHandleRequest(t *testing.T) {
 
-	godotenv.Load("../../.TEST.env")
+	err := godotenv.Load("../../.TEST.env")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	type args struct {
 		ctx   context.Context
