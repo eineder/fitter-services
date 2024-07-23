@@ -9,24 +9,24 @@ echo "**** Deploying TEST stage... ****"
 cdk deploy "TEST/*" --require-approval never || exit 1
 echo "**** ✅ Successfully deployed TEST stage ****"
 
-echo "**** Creating .env file... ****"
+echo "**** Creating .env file for TEST... ****"
 cd scripts/env-file
 npm ci || exit 1
 cd ../..
-node ./scripts/env-file/create-env-file.js || exit 1
-echo "**** ✅ Successfully created .env file ****"
+node ./scripts/env-file/create-env-file.js TEST|| exit 1
+echo "**** ✅ Successfully created .env file for TEST ****"
 
-echo "**** Loading environment variables to be available in the following commands... ****"
-source .env || exit 1
-echo "**** ✅ Successfully loaded environment variables ****"
+echo "**** Loading TEST environment variables to be available in the following commands... ****"
+source .TEST.env || exit 1
+echo "**** ✅ Successfully loaded TEST environment variables ****"
 
-echo "**** Invoking lambda function to seed database... ****"
+echo "**** Invoking lambda function to seed TEST database... ****"
 aws lambda invoke \
     --function-name $PRIME_SWEARWORDS_FUNCTION_NAME \
     --payload '{}' \
     --invocation-type RequestResponse \
     lambda-out.json || exit 1
-echo "**** ✅ Successfully invoked lambda function to seed database... ****"
+echo "**** ✅ Successfully invoked lambda function to seed TEST database... ****"
 
 # Check if the output is null - exit if not
 if ! grep -q "null" lambda-out.json; then
@@ -46,3 +46,22 @@ echo "**** ✅ Successfully ran tests ****"
 echo "**** Deploying PROD stage... ****"
 cdk deploy "PROD/*" --require-approval never || exit 1
 echo "**** ✅ Successfully deployed PROD stage ****"
+
+echo "**** Creating .env file for PROD... ****"
+cd scripts/env-file
+npm ci || exit 1
+cd ../..
+node ./scripts/env-file/create-env-file.js PROD|| exit 1
+echo "**** ✅ Successfully created .env file for PROD ****"
+
+echo "**** Loading PROD environment variables to be available in the following commands... ****"
+source .PROD.env || exit 1
+echo "**** ✅ Successfully loaded PROD environment variables ****"
+
+echo "**** Invoking lambda function to seed PROD database... ****"
+aws lambda invoke \
+    --function-name $PRIME_SWEARWORDS_FUNCTION_NAME \
+    --payload '{}' \
+    --invocation-type RequestResponse \
+    lambda-out.json || exit 1
+echo "**** ✅ Successfully invoked lambda function to seed PROD database... ****"

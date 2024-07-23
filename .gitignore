@@ -20,7 +20,7 @@ cdk.out
 
 node_modules
 */**/node_modules/**/*
-.env
+*.env
 is_swearword/is_swearword
 aws-file-to-dynamodb
 playground/playground.go

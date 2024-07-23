@@ -1,17 +1,20 @@
+const process = require("process");
 const fs = require("fs");
 const cf = require("@aws-sdk/client-cloudformation");
 
 execute();
 
 async function execute() {
-  const fileName = ".env";
+  let stage = "TEST";
+  if (process.argv.length > 2) stage = process.argv[2];
+  const fileName = `.${stage}.env`;
   console.log(`Creating ${fileName} file...`);
 
   const client = new cf.CloudFormationClient();
   const lsc = new cf.ListStacksCommand();
   const response = await client.send(lsc);
   stackNames = response.StackSummaries.filter((stack) =>
-    stack.StackName.startsWith("TEST-appsyncmasterclass-services")
+    stack.StackName.startsWith(`${stage}-appsyncmasterclass-services`)
   ).map((stack) => stack.StackName);
   const outputs = await getOutputs(stackNames);
 
