@@ -10,7 +10,7 @@ import (
 
 func TestHandleRequest(t *testing.T) {
 
-	godotenv.Load("../../.env")
+	godotenv.Load("../../.TEST.env")
 
 	type args struct {
 		ctx   context.Context

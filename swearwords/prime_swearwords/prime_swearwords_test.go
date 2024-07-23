@@ -38,7 +38,7 @@ func (ts *PrimeSwearwordsTestSuite) TestEnsureTablePrimed() {
 		ts.Fail("Got error creating session.", sessionErr)
 	}
 	db := dynamodb.New(session)
-	godotenv.Load("../../.env")
+	godotenv.Load("../../.TEST.env")
 	tableName := os.Getenv("SWEARWORDS_TABLE_NAME")
 
 	emptyErr := Given_AnEmptySwearwordsTable(ts, tableName, db)
