@@ -71,6 +71,7 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 	primeFn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings(
+			"dynamodb:BatchWriteItem",
 			"dynamodb:GetItem",
 			"dynamodb:PutItem",
 			"dynamodb:ImportTable",
