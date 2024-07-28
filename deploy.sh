@@ -5,6 +5,10 @@ echo "**** Installing AWS CDK... ****"
 npm install -g aws-cdk || exit 1
 echo "**** ✅ Successfully installed AWS CDK ****"
 
+echo "**** Synthesize... ****"
+cdk synth
+echo "**** ✅ Successfully synthesized ****"
+
 echo "**** Deploying TEST stage... ****"
 cdk deploy "TEST/*" --require-approval never || exit 1
 echo "**** ✅ Successfully deployed TEST stage ****"
@@ -32,6 +36,7 @@ echo "**** ✅ Successfully invoked lambda function to seed TEST database... ***
 if ! grep -q "null" lambda-out.json; then
   echo "**** ❌ Lambda function output is not null as expected: ****"
   cat lambda-out.json
+  echo 
   echo "**** Exiting... ****"
   exit 1
 fi
@@ -65,3 +70,12 @@ aws lambda invoke \
     --invocation-type RequestResponse \
     lambda-out.json || exit 1
 echo "**** ✅ Successfully invoked lambda function to seed PROD database... ****"
+
+# Check if the output is null - exit if not
+if ! grep -q "null" lambda-out.json; then
+  echo "**** ❌ Lambda function output is not null as expected: ****"
+  cat lambda-out.json
+  echo "**** Exiting... ****"
+  exit 1
+fi
+echo "**** ✅ Successfully seeded table $SWEARWORDS_TABLE_NAME ****"
