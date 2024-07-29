@@ -25,5 +25,5 @@ is_swearword/is_swearword
 aws-file-to-dynamodb
 playground/playground.go
 pipeline/pipeline
-appsyncmasterclass-services
+fitter-services
 lambda-out.json

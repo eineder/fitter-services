@@ -14,7 +14,7 @@ async function execute() {
   const lsc = new cf.ListStacksCommand();
   const response = await client.send(lsc);
   stackNames = response.StackSummaries.filter((stack) =>
-    stack.StackName.startsWith(`${stage}-appsyncmasterclass-services`)
+    stack.StackName.startsWith(`${stage}-fitter-services`)
   ).map((stack) => stack.StackName);
   const outputs = await getOutputs(stackNames);
 

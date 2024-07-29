@@ -1,4 +1,4 @@
-module appsyncmasterclass-services
+module fitter-services
 
 go 1.18
 

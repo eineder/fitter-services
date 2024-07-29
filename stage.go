@@ -1,8 +1,8 @@
 package main
 
 import (
-	"appsyncmasterclass-services/compliance"
-	"appsyncmasterclass-services/swearwords"
+	"fitter-services/compliance"
+	"fitter-services/swearwords"
 	"fmt"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -32,6 +32,6 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *Deployment
 }
 
 func getStackName(serviceName string) string {
-	stackName := fmt.Sprintf("appsyncmasterclass-services-%s", serviceName)
+	stackName := fmt.Sprintf("fitter-services-%s", serviceName)
 	return stackName
 }
