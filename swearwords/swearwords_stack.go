@@ -22,7 +22,7 @@ type SwearwordsServiceStackProps struct {
 	SwearwordsFileName string
 }
 
-func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *SwearwordsServiceStackProps) (stack awscdk.Stack, lambdaName string) {
+func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *SwearwordsServiceStackProps) (stack awscdk.Stack, lambdaName string, lambdaArn string) {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
@@ -56,7 +56,8 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 	fn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 		Effect: awsiam.Effect_ALLOW,
 		Actions: jsii.Strings(
-			"dynamodb:GetItem"),
+			"dynamodb:GetItem",
+			"dynamodb:PartiQLSelect"),
 		Resources: &[]*string{table.TableArn()},
 	}))
 
@@ -113,5 +114,5 @@ func NewSwearwordsServiceStack(scope constructs.Construct, id string, props *Swe
 		Value: primeFn.FunctionName(),
 	})
 
-	return stack, *fn.FunctionName()
+	return stack, *fn.FunctionName(), *fn.FunctionArn()
 }

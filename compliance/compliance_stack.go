@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsevents"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awseventstargets"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/constructs-go/constructs/v10"
@@ -13,6 +14,7 @@ import (
 type ComplianceServiceStackProps struct {
 	awscdk.StackProps
 	SwearwordsLambdaName string
+	SwearwordsLambdaArn  string
 }
 
 func NewComplianceServiceStack(scope constructs.Construct, id string, props *ComplianceServiceStackProps) awscdk.Stack {
@@ -29,6 +31,14 @@ func NewComplianceServiceStack(scope constructs.Construct, id string, props *Com
 			"SWEARWORDS_LAMBDA_NAME": jsii.String(props.SwearwordsLambdaName),
 		},
 	})
+	fn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+		Actions:   jsii.Strings("lambda:InvokeFunction"),
+		Resources: jsii.Strings(props.SwearwordsLambdaArn),
+	}))
+	fn.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+		Actions:   jsii.Strings("dynamodb:UpdateItem"),
+		Resources: jsii.Strings("arn:aws:dynamodb:*:*:table/*TweetsTable*"),
+	}))
 
 	rule := awsevents.NewRule(stack, jsii.String("rule-on-new-tweet-posted"), &awsevents.RuleProps{
 		EventPattern: &awsevents.EventPattern{

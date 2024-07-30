@@ -15,7 +15,11 @@ import (
 )
 
 type OnTweetPostedEvent struct {
-	Tweet           Tweet  `json:"detail"`
+	Detail Detail `json:"detail"`
+}
+
+type Detail struct {
+	Tweet           Tweet  `json:"tweet"`
 	TweetsTableName string `json:"tweetsTableName"`
 }
 
@@ -39,12 +43,13 @@ func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPost
 		return nil, fmt.Errorf("received nil event")
 	}
 
-	if event.TweetsTableName == "" {
+	fmt.Printf("Received event %+v\n", event)
+
+	if event.Detail.TweetsTableName == "" {
 		fmt.Println("Received empty tweetsTableName")
 		return nil, fmt.Errorf("received empty tweetsTableName")
 	}
 
-	lambdaName := aws.String(os.Getenv("SWEARWORDS_LAMBDA_NAME"))
 	cfg := aws.NewConfig()
 	sess, sessErr := session.NewSession(cfg)
 	if sessErr != nil {
@@ -56,7 +61,7 @@ func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPost
 	payloadStruct := struct {
 		Text string `json:"text"`
 	}{
-		Text: event.Tweet.Text,
+		Text: event.Detail.Tweet.Text,
 	}
 	payload, marshalErr := json.Marshal(payloadStruct)
 	if marshalErr != nil {
@@ -64,8 +69,11 @@ func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPost
 		return nil, marshalErr
 	}
 
+	lambdaName := os.Getenv("SWEARWORDS_LAMBDA_NAME")
+	fmt.Printf("Calling lambda %s with payload %+v\n", lambdaName, payload)
+
 	response, lambdaErr := client.Invoke(&ls.InvokeInput{
-		FunctionName: lambdaName,
+		FunctionName: &lambdaName,
 		Payload:      payload,
 	})
 	if lambdaErr != nil {
@@ -73,26 +81,27 @@ func HandleRequest(ctx context.Context, event *OnTweetPostedEvent) (*OnTweetPost
 		return nil, lambdaErr
 	}
 
-	fmt.Printf("%+v\n", response)
+	fmt.Printf("Lambda response: %+v\n", response)
 	var containsSwearwordsResponse ContainsSwearwordsResponse
 	unmarErr := json.Unmarshal(response.Payload, &containsSwearwordsResponse)
 	if unmarErr != nil {
 		fmt.Println("Error unmarshalling response ", unmarErr)
 		return nil, unmarErr
 	}
+	fmt.Printf("Payload: %+v\n", containsSwearwordsResponse)
 
 	if containsSwearwordsResponse.Swearwords != nil && len(containsSwearwordsResponse.Swearwords) > 0 {
-		fmt.Println("Tweet contains swearwords", event.Tweet)
-		markErr := markTweetAsNonCompliant(event.Tweet.Id, event.TweetsTableName, sess)
+		fmt.Println("Tweet contains swearwords", event.Detail.Tweet)
+		markErr := markTweetAsNonCompliant(event.Detail.Tweet.Id, event.Detail.TweetsTableName, sess)
 		if markErr != nil {
 			fmt.Println("Error marking tweet as non-compliant ", markErr)
 			return nil, markErr
 		}
-		fmt.Printf("Marked tweet as non-compliant. Text: '%s', Swearwords: '%+v'", event.Tweet, containsSwearwordsResponse.Swearwords)
+		fmt.Printf("Marked tweet as non-compliant. Text: '%s', Swearwords: '%+v'", event.Detail.Tweet, containsSwearwordsResponse.Swearwords)
 	}
 
 	return &OnTweetPostedResponse{
-		Tweet:               event.Tweet,
+		Tweet:               event.Detail.Tweet,
 		ContainedSwearwords: containsSwearwordsResponse.Swearwords,
 	}, nil
 }
