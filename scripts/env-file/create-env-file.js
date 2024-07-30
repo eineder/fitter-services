@@ -5,7 +5,7 @@ const cf = require("@aws-sdk/client-cloudformation");
 execute();
 
 async function execute() {
-  let stage = "TEST";
+  let stage = "dev";
   if (process.argv.length > 2) stage = process.argv[2];
   const fileName = `.${stage}.env`;
   console.log(`Creating ${fileName} file...`);

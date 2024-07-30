@@ -10,7 +10,7 @@ import (
 
 func TestHandleRequest(t *testing.T) {
 
-	err := godotenv.Load("../../.TEST.env")
+	err := godotenv.Load("../../.dev.env")
 	if err != nil {
 		t.Error(err)
 		return

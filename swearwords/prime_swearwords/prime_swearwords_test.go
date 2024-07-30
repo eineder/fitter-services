@@ -39,7 +39,7 @@ func (ts *PrimeSwearwordsTestSuite) TestEnsureTablePrimed() {
 	}
 	db := dynamodb.New(session)
 
-	err = godotenv.Load("../../.TEST.env")
+	err = godotenv.Load("../../.dev.env")
 	if err != nil {
 		ts.Error(err)
 		return

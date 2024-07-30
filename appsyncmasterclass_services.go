@@ -10,11 +10,11 @@ func main() {
 
 	app := awscdk.NewApp(nil)
 
-	NewDeploymentStage(app, "TEST", &DeploymentStageProps{
-		SwearwordsFileName: "swearwords_test.txt",
+	NewDeploymentStage(app, "dev", &DeploymentStageProps{
+		SwearwordsFileName: "swearwords_dev.txt",
 	})
 
-	NewDeploymentStage(app, "PROD", &DeploymentStageProps{
+	NewDeploymentStage(app, "prod", &DeploymentStageProps{
 		SwearwordsFileName: "swearwords_prod.txt",
 	})
 
