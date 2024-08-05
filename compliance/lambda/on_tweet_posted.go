@@ -117,7 +117,7 @@ func markTweetAsNonCompliant(tweetId string, tableName string, sess *session.Ses
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":c": {
-				BOOL: aws.Bool(false),
+				BOOL: aws.Bool(true),
 			},
 		},
 		UpdateExpression:    aws.String("SET nonCompliant = :c"),
