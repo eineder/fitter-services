@@ -13,6 +13,7 @@ import (
 
 type ComplianceServiceStackProps struct {
 	awscdk.StackProps
+	Stage                string
 	SwearwordsLambdaName string
 	SwearwordsLambdaArn  string
 }
@@ -42,7 +43,7 @@ func NewComplianceServiceStack(scope constructs.Construct, id string, props *Com
 
 	rule := awsevents.NewRule(stack, jsii.String("rule-on-new-tweet-posted"), &awsevents.RuleProps{
 		EventPattern: &awsevents.EventPattern{
-			DetailType: jsii.Strings("new_tweet_posted"),
+			DetailType: jsii.Strings(props.Stage + "_new_tweet_posted"),
 		},
 	})
 

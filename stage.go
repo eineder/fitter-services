@@ -18,13 +18,14 @@ func NewDeploymentStage(scope constructs.Construct, id string, props *Deployment
 
 	stage := awscdk.NewStage(scope, &id, &awscdk.StageProps{})
 
-	swearwordsStackName := getStackName("swearwordsservice")
+	swearwordsStackName := getStackName("swearwords")
 	_, swLambdaName, swLambdaArn := swearwords.NewSwearwordsServiceStack(stage, swearwordsStackName, &swearwords.SwearwordsServiceStackProps{
 		SwearwordsFileName: props.SwearwordsFileName,
 	})
 
-	complianceStackName := getStackName("complianceservice")
+	complianceStackName := getStackName("compliance")
 	compliance.NewComplianceServiceStack(stage, complianceStackName, &compliance.ComplianceServiceStackProps{
+		Stage:                id,
 		SwearwordsLambdaName: swLambdaName,
 		SwearwordsLambdaArn:  swLambdaArn,
 	})
